@@ -1,0 +1,27 @@
+{
+  "name": "nft-collection-with-whitelist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx hardhat compile",
+    "huff-build": "node utils/HuffCompiler.js",
+    "deploy": "npx hardhat run scripts/deploy.js --network sepolia",
+    "test": "npx hardhat test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.5"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "fs": "^0.0.1-security",
+    "node": "^21.6.1",
+    "path": "^0.12.7",
+    "solc": "^0.8.24",
+    "util": "^0.12.5"
+  }
+}

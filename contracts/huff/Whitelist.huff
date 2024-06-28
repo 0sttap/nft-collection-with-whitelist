@@ -1,0 +1,113 @@
+/// @title Whitelist
+/// @author OstapBobrys <https://github.com/OstapBobrys>
+/// @notice Whitelist contract for NFT collection
+
+// Imports
+#include "../huff/data-structures/Hashmap.huff"
+
+// Interface
+#define function addAddressToWhitelist() nonpayable returns () // 0x8e7314d9
+#define function whitelistedAddresses(address) view returns (bool) // 0x06c933d8
+#define function numAddressesWhitelisted() view returns (uint256) // 0x4011d7cd
+#define function maxWhitelistedAddresses() view returns (uint256) // 0x31a72188
+
+// Events
+#define event AddedToWhitelist(address indexed)
+
+// Errors
+#define error AlreadyInWhitelist()
+#define error MaxWhitelistedAddressesLimit()
+
+// Constants
+#define constant MAX_WHITELISTED_ADDRESSES = 0x0a
+
+// Storage
+#define constant NUM_ADDRESSES_WHITELISTED = FREE_STORAGE_POINTER()
+#define constant IS_WHITELISTED = FREE_STORAGE_POINTER()
+
+/* Entry point */
+#define macro MAIN() = takes(0) returns(0) {
+    // Get the function selector
+    0x00 calldataload 0xe0 shr
+
+    dup1 __FUNC_SIG(addAddressToWhitelist)                eq addAddressJump           jumpi
+    dup1 __FUNC_SIG(whitelistedAddresses)                 eq wlAddressJump            jumpi
+    dup1 __FUNC_SIG(numAddressesWhitelisted)              eq numAddressJump           jumpi
+         __FUNC_SIG(maxWhitelistedAddresses)              eq maxAddressJump           jumpi
+
+    0x01 0x00 revert
+
+    addAddressJump:
+        ADD_ADDRESS()
+    wlAddressJump:
+        WL_ADDRESS()
+    numAddressJump:
+        NUM_ADDRESS()
+    maxAddressJump:
+        MAX_ADDRESS()
+}
+
+#define macro ADD_ADDRESS() = takes(0) returns(0) {
+    caller                                          // [caller]
+    [IS_WHITELISTED] LOAD_ELEMENT_FROM_KEYS()       // [isWhitelisted]
+    already_in_whitelist jumpi
+
+    [NUM_ADDRESSES_WHITELISTED] dup1                // [num_ptr, num_ptr]
+    sload dup1                                      // [num, num, num_ptr]
+    [MAX_WHITELISTED_ADDRESSES]                     // [10, num, num, num_ptr]
+    eq                                              // [0/1, num, num_ptr]
+    limit jumpi
+
+    0x01                                            // [0x01, num, num_ptr]
+    add                                             // [0x01 + num, num_ptr]
+    swap1                                           // [num_ptr, newNum]
+    sstore                                          // []
+
+    0x01                                            // [0x01]
+    caller                                          // [caller, 0x01]
+    [IS_WHITELISTED] STORE_ELEMENT_FROM_KEYS()      // []
+
+    caller                                          // [caller]
+    __EVENT_HASH(AddedToWhitelist)                  // [sig, caller]
+    0x20 0x00                                       // [0, 32, sig, caller]
+    log2                                            // []
+
+    stop
+
+    already_in_whitelist:
+        __ERROR(AlreadyInWhitelist)                 // [already_in_whitelist_selector]
+        0x00 mstore                                 // []
+        0x04 0x00 revert
+    
+    limit:
+        __ERROR(MaxWhitelistedAddressesLimit)       // [max_whitelisted_addresses_limit_selector]
+        0x00 mstore                                 // []
+        0x04 0x00 revert
+}
+
+#define macro WL_ADDRESS() = takes(0) returns(0) {
+    0x04 calldataload 0x60 shr                      // [account]
+    [IS_WHITELISTED] LOAD_ELEMENT_FROM_KEYS()       // [isWhitelisted]
+    0x00 mstore                                     // []
+    0x20 0x00 return                                // []
+}
+
+#define macro NUM_ADDRESS() = takes(0) returns(0) {
+    [NUM_ADDRESSES_WHITELISTED] sload   // [num]
+    0x00                                // [0x00, num]
+    mstore                              // []
+
+    0x20                                // [0x20]
+    0x00                                // [0x00, 0x20]
+    return                              // []
+}
+
+#define macro MAX_ADDRESS() = takes(0) returns(0) {
+    [MAX_WHITELISTED_ADDRESSES]         // [MAX_WHITELISTED_ADDRESSES]
+    0x00                                // [0x00, MAX_WHITELISTED_ADDRESSES]
+    mstore                              // []
+
+    0x20                                // [0x20]
+    0x00                                // [0x00, 0x20]
+    return                              // []
+}

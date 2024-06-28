@@ -1,0 +1,35 @@
+/// @title HashMap
+/// @author OstapBobrys <https://github.com/OstapBobrys>
+/// @notice A Module Encapsulating HashMap Methods
+/// @notice Adapted from <https://github.com/huff-language/huffmate/blob/main/src/data-structures/Hashmap.huff>
+
+/// @notice Given two keys (ie a slot and a key), hash them together, generating a slot for a secondary hashmap.
+#define macro GET_SLOT_FROM_KEYS() = takes(2) returns (1) {
+    // Input stack: [slot, key]
+    // Load the data into memory.
+    0x20                // [0x20, slot, key]
+    mstore              // [key]
+    0x00                // [0x00, key]
+    mstore              // []
+
+    // Hash the data, generating a slot.
+    0x40                // [0x40]
+    0x00                // [0x00, 0x40]
+    sha3                // [slot]
+}
+
+/// @notice Load an element onto the stack from two keys
+#define macro LOAD_ELEMENT_FROM_KEYS() = takes(2) returns(1) {
+    // Input stack: [slot, key]
+    GET_SLOT_FROM_KEYS()            // [slotHash]
+    sload                           // [value]
+}
+
+/// @notice Store an element from two keys
+#define macro STORE_ELEMENT_FROM_KEYS() = takes(3) returns (0) {
+    // Input stack: [slot, key, value]
+    GET_SLOT_FROM_KEYS()            // [slotHash, value]
+    sstore                          // []
+}
+
+#define macro MAIN() = takes(0) returns(0) {}
