@@ -1,1 +1,1 @@
-# nft-collection-with-whitelist
+# whitelist-contract-using-solidity-yul-huff
